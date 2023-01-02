@@ -32,6 +32,7 @@ def browserSetup(headless_mode: bool = False, user_agent: str = PC_USER_AGENT) -
     if headless_mode :
         options.add_argument("--headless")
     options.add_argument('log-level=3')
+    options.add_argument('--disable-blink-features=AutomationControlled')
     chrome_browser_obj = webdriver.Chrome(options=options)
     return chrome_browser_obj
 
