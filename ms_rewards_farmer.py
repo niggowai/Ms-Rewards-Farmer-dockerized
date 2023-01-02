@@ -46,6 +46,10 @@ def send(driver, cmd, params=None):
     response = driver.command_executor._request('POST', url, body)
     return response.get('value')
 
+# Define function to create cookie Objects
+def create_cookie(cookiename, cookievalue):
+    return {'domain': 'login.live.com', 'name': cookiename, 'value': cookievalue, 'secure': True, 'httpOnly': True}
+
 # Define login function
 def login(browser: WebDriver, email: str, pwd: str, isMobile: bool = False):
     # Access to bing.com
