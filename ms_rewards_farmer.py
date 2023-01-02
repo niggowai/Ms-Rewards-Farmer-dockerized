@@ -8,7 +8,7 @@ import ipapi
 import os
 
 from selenium import webdriver
-from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
@@ -33,7 +33,7 @@ def browserSetup(headless_mode: bool = False, user_agent: str = PC_USER_AGENT) -
         options.add_argument("--headless")
     options.add_argument('log-level=3')
     options.add_argument('--disable-blink-features=AutomationControlled')
-    chrome_browser_obj = webdriver.Chrome(options=options)
+    chrome_browser_obj = WebDriver(command_executor='http://chromedriver:4443', options=options)
     return chrome_browser_obj
 
 # Define login function
