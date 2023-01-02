@@ -1,0 +1,9 @@
+version: "3.7"
+
+services:
+  chromedriver:
+    image: selenium/standalone-chrome
+    ports:
+      - "4443:4444"
+      - "7901:7900"
+    shm_size: 2gb
