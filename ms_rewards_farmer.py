@@ -36,6 +36,16 @@ def browserSetup(headless_mode: bool = False, user_agent: str = PC_USER_AGENT) -
     chrome_browser_obj = WebDriver(command_executor='http://chromedriver:4443', options=options)
     return chrome_browser_obj
 
+# Workaround for webdriver.execute_cdp_cmd(command, params) -> send(webdriver, command, params)
+def send(driver, cmd, params=None):
+    if params is None:
+        params = {}
+    resource = "/session/%s/chromium/send_command_and_get_result" % driver.session_id
+    url = driver.command_executor._url + resource
+    body = json.dumps({'cmd': cmd, 'params': params})
+    response = driver.command_executor._request('POST', url, body)
+    return response.get('value')
+
 # Define login function
 def login(browser: WebDriver, email: str, pwd: str, isMobile: bool = False):
     # Access to bing.com
