@@ -705,6 +705,12 @@ def getRemainingSearches(browser: WebDriver):
         remainingMobile = int((targetMobile - progressMobile) / searchPoints)
     return remainingDesktop, remainingMobile
 
+def get_json_index(username: str, accounts: list):
+    for userindex in range(len(accounts)):
+        if(ACCOUNTS[userindex]['username'] == username):
+            return userindex
+    return -1
+
 def prRed(prt):
     print("\033[91m{}\033[00m".format(prt))
 def prGreen(prt):
