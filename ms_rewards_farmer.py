@@ -800,5 +800,9 @@ for account in ACCOUNTS:
         prGreen('[BING] Finished Mobile Bing searches !')
         browser.quit()
 
+    ACCOUNTS[get_json_index(account['username'], ACCOUNTS)]['points'] = POINTS_COUNTER
     prGreen('[POINTS] You have earned ' + str(POINTS_COUNTER - startingPoints) + ' points today !')
     prGreen('[POINTS] You are now at ' + str(POINTS_COUNTER) + ' points !\n')
+
+with open(account_path, 'w') as f:
+    f.write(json.dumps(ACCOUNTS, indent=4))
