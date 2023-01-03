@@ -51,51 +51,14 @@ def create_cookie(cookiename, cookievalue):
     return {'domain': 'login.live.com', 'name': cookiename, 'value': cookievalue, 'secure': True, 'httpOnly': True}
 
 # Define login function
-def login(browser: WebDriver, email: str, pwd: str, isMobile: bool = False):
-    # Access to bing.com
-    browser.get('https://login.live.com/')
-    # Wait complete loading
-    waitUntilVisible(browser, By.ID, 'loginHeader', 10)
-    # Enter email
-    print('[LOGIN]', 'Writing email...')
-    browser.find_element(By.NAME, "loginfmt").send_keys(email)
-    # Click next
-    browser.find_element(By.ID, 'idSIButton9').click()
-    # Wait 2 seconds
+def login(browser: WebDriver, cookie: str, isMobile: bool = False):
+    print('[LOGIN]', 'injected "__Host-MSAAUTHP"-cookie')
+    send(browser, 'Network.enable', {})
+    send(browser, 'Network.setCookie', create_cookie('__Host-MSAAUTHP', cookie))
+    send(browser, 'Network.disable', {})
+    print('[LOGIN]', 'Loading other cookies')
+    browser.get("https://login.live.com")
     time.sleep(2)
-    # Wait complete loading
-    waitUntilVisible(browser, By.ID, 'loginHeader', 10)
-    # Enter password
-    #browser.find_element(By.ID, "i0118").send_keys(pwd)
-    browser.execute_script("document.getElementById('i0118').value = '" + pwd + "';")
-    print('[LOGIN]', 'Writing password...')
-    # Click next
-    browser.find_element(By.ID, 'idSIButton9').click()
-    # Wait 5 seconds
-    time.sleep(5)
-    # Click Security Check
-    print('[LOGIN]', 'Passing security checks...')
-    try:
-        browser.find_element(By.ID, 'iLandingViewAction').click()
-    except (NoSuchElementException, ElementNotInteractableException) as e:
-        pass
-    try:
-        browser.find_element(By.ID, 'iNext').click()
-    except:
-        pass
-    # Wait complete loading
-    try:
-        waitUntilVisible(browser, By.ID, 'KmsiCheckboxField', 10)
-    except (TimeoutException) as e:
-        pass
-    # Click next
-    try:
-        browser.find_element(By.ID, 'idSIButton9').click()
-        # Wait 5 seconds
-        time.sleep(5)
-    except (NoSuchElementException, ElementNotInteractableException) as e:
-        pass
-    print('[LOGIN]', 'Logged-in !')
     # Check Login
     print('[LOGIN]', 'Ensuring login on Bing...')
     checkBingLogin(browser, isMobile)
@@ -785,7 +748,7 @@ for account in ACCOUNTS:
     prYellow('********************' + account['username'] + '********************')
     browser = browserSetup(False, PC_USER_AGENT)
     print('[LOGIN]', 'Logging-in...')
-    login(browser, account['username'], account['password'])
+    login(browser, account['cookie'])
     prGreen('[LOGIN] Logged-in successfully !')
     startingPoints = POINTS_COUNTER
     prGreen('[POINTS] You have ' + str(POINTS_COUNTER) + ' points on your account !')
@@ -824,7 +787,7 @@ for account in ACCOUNTS:
     if remainingSearchesM != 0:
         browser = browserSetup(False, MOBILE_USER_AGENT)
         print('[LOGIN]', 'Logging-in...')
-        login(browser, account['username'], account['password'], True)
+        login(browser, account['cookie'], True)
         print('[LOGIN]', 'Logged-in successfully !')
         print('[BING]', 'Starting Mobile Bing searches...')
         bingSearches(browser, remainingSearchesM, True)
