@@ -556,7 +556,7 @@ def completePunchCards(browser: WebDriver):
     for punchCard in punchCards:
         try:
             if punchCard['parentPromotion'] != None and punchCard['childPromotions'] != None and punchCard['parentPromotion']['complete'] == False and punchCard['parentPromotion']['pointProgressMax'] != 0:
-                if BASE_URL == "https://rewards.microsoft.com":
+                if BASE_URL == "https://rewards.bing.com":
                     completePunchCard(browser, punchCard['parentPromotion']['attributes']['destination'], punchCard['childPromotions'])
                 else:
                     url = punchCard['parentPromotion']['attributes']['destination']
@@ -780,7 +780,7 @@ for account in ACCOUNTS:
     waitUntilVisible(browser, By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a', 20)
 
     if browser.find_element(By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a').get_attribute('target') == '_blank':
-        BASE_URL = 'https://rewards.microsoft.com'
+        BASE_URL = 'https://rewards.bing.com'
         browser.find_element(By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a').click()
         time.sleep(1)
         browser.switch_to.window(window_name=browser.window_handles[0])
