@@ -58,7 +58,9 @@ def login(browser: WebDriver, cookie: str, isMobile: bool = False):
     send(browser, 'Network.disable', {})
     print('[LOGIN]', 'Loading other cookies')
     browser.get("https://login.live.com")
-    time.sleep(2)
+    time.sleep(1)
+    browser.get("https://bing.com")
+    time.sleep(1)
     # Check Login
     print('[LOGIN]', 'Ensuring login on Bing...')
     checkBingLogin(browser, isMobile)
