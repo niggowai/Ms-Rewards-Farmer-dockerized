@@ -6,6 +6,8 @@ import random
 import urllib.parse
 import ipapi
 import os
+import signal
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
