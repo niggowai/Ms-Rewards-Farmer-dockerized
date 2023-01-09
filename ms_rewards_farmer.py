@@ -36,55 +36,34 @@ def browserSetup(headless_mode: bool = False, user_agent: str = PC_USER_AGENT) -
     chrome_browser_obj = WebDriver(command_executor='http://chromedriver:4443', options=options)
     return chrome_browser_obj
 
+# Workaround for webdriver.execute_cdp_cmd(command, params) -> send(webdriver, command, params)
+def send(driver, cmd, params=None):
+    if params is None:
+        params = {}
+    resource = "/session/%s/chromium/send_command_and_get_result" % driver.session_id
+    url = driver.command_executor._url + resource
+    body = json.dumps({'cmd': cmd, 'params': params})
+    response = driver.command_executor._request('POST', url, body)
+    return response.get('value')
+
+# Define function to create cookie Objects
+def create_cookie(cookiename, cookievalue):
+    return {'domain': 'login.live.com', 'name': cookiename, 'value': cookievalue, 'secure': True, 'httpOnly': True}
+
 # Define login function
-def login(browser: WebDriver, email: str, pwd: str, isMobile: bool = False):
-    # Access to bing.com
-    browser.get('https://login.live.com/')
-    # Wait complete loading
-    waitUntilVisible(browser, By.ID, 'loginHeader', 10)
-    # Enter email
-    print('[LOGIN]', 'Writing email...')
-    browser.find_element(By.NAME, "loginfmt").send_keys(email)
-    # Click next
-    browser.find_element(By.ID, 'idSIButton9').click()
-    # Wait 2 seconds
-    time.sleep(2)
-    # Wait complete loading
-    waitUntilVisible(browser, By.ID, 'loginHeader', 10)
-    # Enter password
-    #browser.find_element(By.ID, "i0118").send_keys(pwd)
-    browser.execute_script("document.getElementById('i0118').value = '" + pwd + "';")
-    print('[LOGIN]', 'Writing password...')
-    # Click next
-    browser.find_element(By.ID, 'idSIButton9').click()
-    # Wait 5 seconds
-    time.sleep(5)
-    # Click Security Check
-    print('[LOGIN]', 'Passing security checks...')
-    try:
-        browser.find_element(By.ID, 'iLandingViewAction').click()
-    except (NoSuchElementException, ElementNotInteractableException) as e:
-        pass
-    try:
-        browser.find_element(By.ID, 'iNext').click()
-    except:
-        pass
-    # Wait complete loading
-    try:
-        waitUntilVisible(browser, By.ID, 'KmsiCheckboxField', 10)
-    except (TimeoutException) as e:
-        pass
-    # Click next
-    try:
-        browser.find_element(By.ID, 'idSIButton9').click()
-        # Wait 5 seconds
-        time.sleep(5)
-    except (NoSuchElementException, ElementNotInteractableException) as e:
-        pass
-    print('[LOGIN]', 'Logged-in !')
+def login(browser: WebDriver, cookie: str, isMobile: bool = False):
+    print('[LOGIN]', 'injected "__Host-MSAAUTHP"-cookie')
+    send(browser, 'Network.enable', {})
+    send(browser, 'Network.setCookie', create_cookie('__Host-MSAAUTHP', cookie))
+    send(browser, 'Network.disable', {})
+    print('[LOGIN]', 'Loading other cookies')
+    browser.get("https://login.live.com")
+    time.sleep(1)
+    browser.get("https://bing.com")
+    time.sleep(1)
     # Check Login
     print('[LOGIN]', 'Ensuring login on Bing...')
-    checkBingLogin(browser, isMobile)
+    return checkBingLogin(browser, isMobile)
 
 def checkBingLogin(browser: WebDriver, isMobile: bool = False):
     global POINTS_COUNTER
@@ -127,7 +106,7 @@ def checkBingLogin(browser: WebDriver, isMobile: bool = False):
         except:
             if str(browser.current_url).split('?')[0] == "https://account.live.com/proofs/Add":
                 input('[LOGIN] Please complete the Security Check on ' + browser.current_url)
-                exit()
+                return False
     #Wait 2 seconds
     time.sleep(2)
     # Refresh page
@@ -155,7 +134,8 @@ def checkBingLogin(browser: WebDriver, isMobile: bool = False):
             time.sleep(1)
             POINTS_COUNTER = int(browser.find_element(By.ID, 'fly_id_rc').get_attribute('innerHTML'))
     except:
-        checkBingLogin(browser, isMobile)
+        return False
+    return True
 
 def waitUntilVisible(browser: WebDriver, by_: By, selector: str, time_to_wait: int = 10):
     WebDriverWait(browser, time_to_wait).until(ec.visibility_of_element_located((by_, selector)))
@@ -728,6 +708,12 @@ def getRemainingSearches(browser: WebDriver):
         remainingMobile = int((targetMobile - progressMobile) / searchPoints)
     return remainingDesktop, remainingMobile
 
+def get_json_index(username: str, accounts: list):
+    for userindex in range(len(accounts)):
+        if(ACCOUNTS[userindex]['username'] == username):
+            return userindex
+    return -1
+
 def prRed(prt):
     print("\033[91m{}\033[00m".format(prt))
 def prGreen(prt):
@@ -771,51 +757,63 @@ for account in ACCOUNTS:
     prYellow('********************' + account['username'] + '********************')
     browser = browserSetup(False, PC_USER_AGENT)
     print('[LOGIN]', 'Logging-in...')
-    login(browser, account['username'], account['password'])
-    prGreen('[LOGIN] Logged-in successfully !')
-    startingPoints = POINTS_COUNTER
-    prGreen('[POINTS] You have ' + str(POINTS_COUNTER) + ' points on your account !')
-
-    browser.get('https://account.microsoft.com/')
-    waitUntilVisible(browser, By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a', 20)
-
-    if browser.find_element(By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a').get_attribute('target') == '_blank':
-        BASE_URL = 'https://rewards.bing.com'
-        browser.find_element(By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a').click()
-        time.sleep(1)
-        browser.switch_to.window(window_name=browser.window_handles[0])
-        browser.close()
-        browser.switch_to.window(window_name=browser.window_handles[0])
-        time.sleep(10)
+    if not login(browser, account['cookie']) or account['error'] == "true":
+        ACCOUNTS[get_json_index(account['username'], ACCOUNTS)]['error'] = "true"
+        prRed('[LOGIN] Login failed !')
+        remainingSearchesM = 0
     else:
-        BASE_URL = 'https://account.microsoft.com/rewards'
-        browser.get(BASE_URL)
+        prGreen('[LOGIN] Logged-in successfully !')
+        startingPoints = POINTS_COUNTER
+        prGreen('[POINTS] You have ' + str(POINTS_COUNTER) + ' points on your account !')
 
-    print('[DAILY SET]', 'Trying to complete the Daily Set...')
-    completeDailySet(browser)
-    prGreen('[DAILY SET] Completed the Daily Set successfully !')
-    print('[PUNCH CARDS]', 'Trying to complete the Punch Cards...')
-    completePunchCards(browser)
-    prGreen('[PUNCH CARDS] Completed the Punch Cards successfully !')
-    print('[MORE PROMO]', 'Trying to complete More Promotions...')
-    completeMorePromotions(browser)
-    prGreen('[MORE PROMO] Completed More Promotions successfully !')
-    remainingSearches, remainingSearchesM = getRemainingSearches(browser)
-    if remainingSearches != 0:
-        print('[BING]', 'Starting Desktop and Edge Bing searches...')
-        bingSearches(browser, remainingSearches)
-        prGreen('[BING] Finished Desktop and Edge Bing searches !')
+        browser.get('https://account.microsoft.com/')
+        waitUntilVisible(browser, By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a', 20)
+
+        if browser.find_element(By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a').get_attribute('target') == '_blank':
+            BASE_URL = 'https://rewards.bing.com'
+            browser.find_element(By.XPATH, '//*[@id="navs"]/div/div/div/div/div[4]/a').click()
+            time.sleep(1)
+            browser.switch_to.window(window_name=browser.window_handles[0])
+            browser.close()
+            browser.switch_to.window(window_name=browser.window_handles[0])
+            time.sleep(10)
+        else:
+            BASE_URL = 'https://account.microsoft.com/rewards'
+            browser.get(BASE_URL)
+
+        print('[DAILY SET]', 'Trying to complete the Daily Set...')
+        completeDailySet(browser)
+        prGreen('[DAILY SET] Completed the Daily Set successfully !')
+        print('[PUNCH CARDS]', 'Trying to complete the Punch Cards...')
+        completePunchCards(browser)
+        prGreen('[PUNCH CARDS] Completed the Punch Cards successfully !')
+        print('[MORE PROMO]', 'Trying to complete More Promotions...')
+        completeMorePromotions(browser)
+        prGreen('[MORE PROMO] Completed More Promotions successfully !')
+        remainingSearches, remainingSearchesM = getRemainingSearches(browser)
+        if remainingSearches != 0:
+            print('[BING]', 'Starting Desktop and Edge Bing searches...')
+            bingSearches(browser, remainingSearches)
+            prGreen('[BING] Finished Desktop and Edge Bing searches !')
     browser.quit()
 
     if remainingSearchesM != 0:
         browser = browserSetup(False, MOBILE_USER_AGENT)
         print('[LOGIN]', 'Logging-in...')
-        login(browser, account['username'], account['password'], True)
-        print('[LOGIN]', 'Logged-in successfully !')
-        print('[BING]', 'Starting Mobile Bing searches...')
-        bingSearches(browser, remainingSearchesM, True)
-        prGreen('[BING] Finished Mobile Bing searches !')
+        if login(browser, account['cookie'], True) or account['error'] == "true":
+            ACCOUNTS[get_json_index(account['username'], ACCOUNTS)]['error'] = "true"
+            prRed('[LOGIN] Login failed !')
+        else:
+            print('[LOGIN]', 'Logged-in successfully !')
+            print('[BING]', 'Starting Mobile Bing searches...')
+            bingSearches(browser, remainingSearchesM, True)
+            prGreen('[BING] Finished Mobile Bing searches !')
         browser.quit()
 
-    prGreen('[POINTS] You have earned ' + str(POINTS_COUNTER - startingPoints) + ' points today !')
-    prGreen('[POINTS] You are now at ' + str(POINTS_COUNTER) + ' points !\n')
+    if account['error'] == "false":
+        ACCOUNTS[get_json_index(account['username'], ACCOUNTS)]['points'] = POINTS_COUNTER
+        prGreen('[POINTS] You have earned ' + str(POINTS_COUNTER - startingPoints) + ' points today !')
+        prGreen('[POINTS] You are now at ' + str(POINTS_COUNTER) + ' points !\n')
+
+with open(account_path, 'w') as f:
+    f.write(json.dumps(ACCOUNTS, indent=4))
