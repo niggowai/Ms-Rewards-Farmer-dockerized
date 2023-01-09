@@ -744,7 +744,8 @@ prRed("""
 ██║╚██╔╝██║╚════██║    ██╔══╝  ██╔══██║██╔══██╗██║╚██╔╝██║██╔══╝  ██╔══██╗
 ██║ ╚═╝ ██║███████║    ██║     ██║  ██║██║  ██║██║ ╚═╝ ██║███████╗██║  ██║
 ╚═╝     ╚═╝╚══════╝    ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝""")
-prPurple("        by Charles Bel (@charlesbel)               version 2.0\n")
+prPurple("        by Charles Bel (@charlesbel)               version 2.0")
+prPurple("  forked by Niggo Wai (@niggowai)\n")
 
 LANG, GEO, TZ = getCCodeLangAndOffset()
 
