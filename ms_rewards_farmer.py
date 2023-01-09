@@ -757,7 +757,7 @@ for account in ACCOUNTS:
     prYellow('********************' + account['username'] + '********************')
     browser = browserSetup(False, PC_USER_AGENT)
     print('[LOGIN]', 'Logging-in...')
-    if not login(browser, account['cookie']):
+    if not login(browser, account['cookie']) or account['error'] == "true":
         ACCOUNTS[get_json_index(account['username'], ACCOUNTS)]['error'] = "true"
         prRed('[LOGIN] Login failed !')
         remainingSearchesM = 0
@@ -800,7 +800,7 @@ for account in ACCOUNTS:
     if remainingSearchesM != 0:
         browser = browserSetup(False, MOBILE_USER_AGENT)
         print('[LOGIN]', 'Logging-in...')
-        if login(browser, account['cookie'], True):
+        if login(browser, account['cookie'], True) or account['error'] == "true":
             ACCOUNTS[get_json_index(account['username'], ACCOUNTS)]['error'] = "true"
             prRed('[LOGIN] Login failed !')
         else:
