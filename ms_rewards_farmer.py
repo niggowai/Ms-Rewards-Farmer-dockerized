@@ -24,6 +24,14 @@ POINTS_COUNTER = 0
 
 BASE_URL = ""
 
+def sigterm_handler(_signo, _stack_frame):
+    try:
+        prRed('[SYSTEM] Recieved SIGINT signal, trying to close Browser')
+        browser.quit()
+        prRed('[SYSTEM] browser was closed successfully')
+    finally:
+        sys.exit(0)
+
 # Define browser setup function
 def browserSetup(headless_mode: bool = False, user_agent: str = PC_USER_AGENT) -> WebDriver:
     # Create Chrome browser
@@ -724,6 +732,10 @@ def prPurple(prt):
     print("\033[95m{}\033[00m".format(prt))
 def prYellow(prt):
     print("\033[93m{}\033[00m".format(prt))
+
+
+
+signal.signal(signal.SIGINT, sigterm_handler)
 
 prRed("""
 ███╗   ███╗███████╗    ███████╗ █████╗ ██████╗ ███╗   ███╗███████╗██████╗ 
