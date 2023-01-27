@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  dashboard:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - "7900:7900"
+    shm_size: 2gb
+    volumes:
+      - ../html/index.html:/home/seluser/index.html
+
+  dashboard-server:
+    image: farmer-dashboard:latest
+    depends_on:
+      - dashboard
+    volumes:
+      - ../accounts.json:/accounts.json
