@@ -16,4 +16,4 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/certs/:/etc/nginx/certs/
-      - ./data/:/var/www/
+      - ./nginx/data/:/var/www/
