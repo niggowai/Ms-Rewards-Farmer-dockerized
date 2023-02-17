@@ -2,3 +2,4 @@ accounts.json
 .idea
 venv
 load-debug.py
+nginx/certs
