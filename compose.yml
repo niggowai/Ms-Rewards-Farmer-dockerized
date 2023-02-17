@@ -7,3 +7,12 @@ services:
       - "4443:4444"
       - "7901:7900"
     shm_size: 2gb
+
+  dashboard:
+    image: selenium/standalone-chrome
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    shm_size: 2gb
+    volumes:
+      - ./html/index.html:/home/seluser/index.html
