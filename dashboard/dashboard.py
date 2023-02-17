@@ -176,6 +176,6 @@ def session_run():
         print(driver.get_log('driver')[-1])
         driver.quit()
 
-
+sleep(5)
 while True:
     session_run()
