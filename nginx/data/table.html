@@ -1,0 +1,69 @@
+<script type="text/javascript">
+
+fetch('accounts.json').then((response) => response.json()).then((data) => createTable(data));
+
+function createTable(accounts){
+    let table= "<table id='accounts' class='table table-bordered, table-hover'><tr>"
+    let categorys = ["Username", "Points", "MS&#8364;", "3P&#8364;", "OK", "ReMove"];
+    for(let cat of categorys){
+        table += createTableHeading(cat);
+    }
+    table += "</tr>";
+
+    let cumPoints = 0;
+    let errors = false;
+
+    for(let a of accounts){
+        table += "<tr>";
+        let link = `https://login.live.com/modify_cookies?user=${a.username}`
+        for(let val of [addLink(link, a.username), a.points, (a.points/1000).toPrecision(2), (a.points/1500).toPrecision(2), a.error==="true", "RemoveLink"]){
+            if(typeof val == "boolean"){
+                table += createTableCell(val ? "<b class='hook'>&#10003</b>" : "<b class='cross'>&#10007</b>");
+            }
+            else {
+                if(val === "RemoveLink"){
+                    table += createTableCell(addLink(link + "&action=remove", "ReMove"));
+                }
+                else {
+                    table += createTableCell(val);
+                }
+            }
+        }
+        table += "</tr>";
+        cumPoints += a.points;
+        errors = errors && a.error;
+    }
+
+    table += "<tr>";
+
+    for(let val of ["Cumulated", cumPoints, (cumPoints/1000).toPrecision(2), (cumPoints/1500).toPrecision(2), errors ? "<b class='hook'>&#10003</b>" : "<b class='cross'>&#10007</b>", ""]){
+        table += createTableCellRaw("style", "<b>" + val + "</b>");
+    }
+
+    table += "</tr>";
+
+    table +="</table>";
+    document.write(`<link href="style.css" rel="stylesheet">`);
+    document.write()
+    document.write(`<h1>Account Overview</h1>`);
+    document.write(table);
+    document.title = "Account Overview";
+}
+
+function createTableCell(value){
+    return  createTableCellRaw("", value);
+}
+
+function createTableCellRaw(attributes, value){
+    return `<td style="text-align: center" ${attributes}>${value}</td>`;
+}
+
+function createTableHeading(value){
+    return `<th class="nolink">${value}</th>`;
+}
+
+function addLink(link, text){
+  return `<a href="${link}" target="_blank">${text}</a>`
+}
+
+</script>
