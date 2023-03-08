@@ -15,7 +15,7 @@ function createTable(accounts){
 
     for(let a of accounts){
         table += "<tr>";
-        let link = `https://login.live.com/modify_cookies?user=${a.username}`
+        let link = `https://login.itsme.lan/modify_cookies?user=${a.username}`
         for(let val of [addLink(link, a.username), a.points, (a.points/1000).toPrecision(2), (a.points/1500).toPrecision(2), a.error==="true", "RemoveLink"]){
             if(typeof val == "boolean"){
                 table += createTableCell(val ? "<b class='hook'>&#10003</b>" : "<b class='cross'>&#10007</b>");
